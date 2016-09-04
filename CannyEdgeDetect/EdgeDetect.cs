@@ -14,32 +14,44 @@ namespace CannyEdgeDetect
         {
             Image loaded_image = Image.FromFile("Test.png");
             Bitmap imageMap = new Bitmap(loaded_image);
-
-            int[,] Gaussian = new int[5, 5] { { 2,  4,  5, 4, 2 } ,
-                                              { 4,  9, 12, 9, 4 },
-                                              { 5, 12, 15,12, 5 },
-                                              { 4,  9, 12, 9, 4 },
-                                              { 2,  4,  5, 4, 2 }
-                                                };
-            
-            for (int x = 0; x < imageMap.Width; x+=5)
+            Bitmap newImage = new Bitmap(imageMap.Width, imageMap.Height);
+            int K = 3;
+            int[,] Gaussian = new int[3, 3] { {1,2,1 },
+                                              {2,4,2 },
+                                              {1,2,1 }};
+            //  5 / 2 = Kernel size halfed
+            for (int x = K / 2; x < imageMap.Width - K / 2; x++)
             {
-                for (int y = 0; y < imageMap.Height; y+=5)
+                for (int y = K / 2; y < imageMap.Height - K / 2; y++)
                 {
-                    int accumalator = 0;
-                    for (int row = 0; row < 5; row++)
+                    int sumR = 0;
+                    int sumB = 0;
+                    int sumG = 0;
+                    int sumA = 0;
+                    for (int row = -K / 2; row < K / 2; row++)
                     {
-                        for (int element = 0; element < 5; element++)
+                        for (int element = -K / 2; element < K / 2; element++)
                         {
-                            Color pixel = imageMap.GetPixel(x, y);
-                            Color gaussianPixel = new Color(pixel.R,pixel.B,pixel.G);
+                            Color pixel = imageMap.GetPixel(x + row, y + element);
+                            int coeff = Gaussian[row + K / 2, element + K / 2];
+                            sumA = pixel.A;
+                            sumR = pixel.R * coeff;
+                            sumB = pixel.B * coeff;
+                            sumG = pixel.G * coeff;
+
 
                         }
                     }
+                    sumR /= 16;
+                    sumB /= 16;
+                    sumG /= 16;
+                    if (sumR > 255) sumR = 255;
+                    if (sumB > 255) sumB = 255;
+                    if (sumG > 255) sumG = 255;
+                    newImage.SetPixel(x, y, Color.FromArgb(sumA, sumR, sumG, sumB));
                 }
             }
-            //loaded_image.Save("Uusi", ImageFormat.Png);
-
+            newImage.Save("Result.png", ImageFormat.Png);
         }
     }
 }
