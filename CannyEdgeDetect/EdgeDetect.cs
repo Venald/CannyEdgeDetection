@@ -16,9 +16,9 @@ namespace CannyEdgeDetect
             Bitmap imageMap = new Bitmap(loaded_image);
             Bitmap newImage = new Bitmap(loaded_image);
             int K = 3;
-            int[,] Gaussian = new int[3, 3] { {1,2,1 },
-                                              {2,4,2 },
-                                              {1,2,1 }};
+            int[,] edgeDetectKernel = new int[3, 3] { { -1, -1, -1 },
+                                                     {  -1, -8, -1 },
+                                                     {  -1, -1, -1 }};
             //  5 / 2 = Kernel size halfed
             for (int x = K / 2; x < imageMap.Width - K / 2; x++)
             {
@@ -32,7 +32,7 @@ namespace CannyEdgeDetect
                         for (int element = -K / 2; element < K / 2; element++)
                         {
                             Color pixel = imageMap.GetPixel(x + row, y + element);
-                            int coeff = Gaussian[row + K / 2, element + K / 2];
+                            int coeff = edgeDetectKernel[row + K / 2, element + K / 2];
                             sumR += pixel.R * coeff;
                             sumB += pixel.B * coeff;
                             sumG += pixel.G * coeff;
@@ -40,12 +40,16 @@ namespace CannyEdgeDetect
 
                         }
                     }
+                    if (sumR < 0) sumR *= -1;
+                    if (sumB < 0) sumB *= -1;
+                    if (sumG < 0) sumG *= -1;
                     sumR /= 16;
-                    sumB /= 16;
                     sumG /= 16;
+                    sumB /= 16;
                     if (sumR > 255) sumR = 255;
                     if (sumB > 255) sumB = 255;
                     if (sumG > 255) sumG = 255;
+
                     int sumA = imageMap.GetPixel(x, y).A;
                     newImage.SetPixel(x, y, Color.FromArgb(sumA, sumR, sumG, sumB));
                 }
