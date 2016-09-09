@@ -29,13 +29,9 @@ namespace CannyEdgeDetect
             {
                 for (int y = K / 2; y < imageMap.Height - K / 2; y++)
                 {
-                    int sumRx = 0;
-                    int sumBx = 0;
-                    int sumGx = 0;
-
-                    int sumRy = 0;
-                    int sumBy = 0;
-                    int sumGy = 0;
+                    double sumXColor = 0;
+                    double sumYColor = 0;
+                    
                     // Should go thru the kernel and x
                     for (int row = -K / 2; row < K / 2; row++)
                     {
@@ -45,22 +41,15 @@ namespace CannyEdgeDetect
                             int coeffX = edgeDetectKernelX[row + K / 2, element + K / 2];
                             int coeffY = edgeDetectKernelY[row + K / 2, element + K / 2];
 
-                            sumRx += pixel.R * coeffX;
-                            sumBx += pixel.B * coeffX;
-                            sumGx += pixel.G * coeffX;
-                            sumRy += pixel.R * coeffY;
-                            sumBy += pixel.B * coeffY;
-                            sumGy += pixel.G * coeffY;
+                            sumXColor = (pixel.R + pixel.G + pixel.B) / 3.0 * coeffX;
+                            sumYColor = (pixel.R + pixel.G + pixel.B) / 3.0 * coeffX;
 
 
                         }
                     }
 
 
-
-                    double sumR = Math.Sqrt((sumRx * sumRx) + (sumRy * sumRy));
-                    double sumG = Math.Sqrt((sumGx * sumGx) + (sumGy * sumGy));
-                    double sumB = Math.Sign((sumBx * sumBx) + (sumBy * sumBy));
+                    double colorSum = Math.Sqrt((sumXColor * sumXColor) + (sumYColor * sumYColor));
 
                     //After convolution the sums aren't always in [0,255]
                     
@@ -74,13 +63,11 @@ namespace CannyEdgeDetect
 
                     //Console.WriteLine(sumR + "\n" + sumG + "\n" + sumB + "\n" );
 
-                    if (sumR > 255) sumR = 255;
-                    if (sumB > 255) sumB = 255;
-                    if (sumG > 255) sumG = 255;
+                    if (colorSum > 255) colorSum = 255;
                     
                     //No processing in alpha channel should there be?
                     int sumA = imageMap.GetPixel(x, y).A;
-                    newImage.SetPixel(x, y, Color.FromArgb(sumA, (int)sumR, (int)sumG, (int)sumB));
+                    newImage.SetPixel(x, y, Color.FromArgb(sumA, (int)colorSum, (int)colorSum, (int)colorSum));
                 }
             }
             newImage.Save("Result.png", ImageFormat.Png);
