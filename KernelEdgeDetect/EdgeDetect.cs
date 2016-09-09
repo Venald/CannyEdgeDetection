@@ -1,13 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Drawing;
 using System.Drawing.Imaging;
-using System.IO;
 
-namespace CannyEdgeDetect
+namespace KernelEdgeDetect
 {
     class EdgeDetect
     {
@@ -23,6 +18,7 @@ namespace CannyEdgeDetect
             int[,] edgeDetectKernelY = new int[3, 3] { { -1, -2, -1 },
                                                      {    0,  0,  0 },
                                                      {    1,  2,  1 }};
+            Normalization normalArray = new Normalization(imageMap.Width, imageMap.Height);
             
             //  Kernel size halved for x and y
             for (int x = K / 2; x < imageMap.Width - K / 2; x++)
@@ -63,11 +59,21 @@ namespace CannyEdgeDetect
 
                     //Console.WriteLine(sumR + "\n" + sumG + "\n" + sumB + "\n" );
 
-                    if (colorSum > 255) colorSum = 255;
+                    //if (colorSum > 255) colorSum = 255;
                     
                     //No processing in alpha channel should there be?
                     int sumA = imageMap.GetPixel(x, y).A;
-                    newImage.SetPixel(x, y, Color.FromArgb(sumA, (int)colorSum, (int)colorSum, (int)colorSum));
+                    //newImage.SetPixel(x, y, Color.FromArgb(sumA, 0, 0, 0));
+                    normalArray.Add(x, y, colorSum);
+                }
+            }
+
+            normalArray.Normalize();
+            for (int x = 0; x < newImage.Width; x++)
+            {
+                for (int y = 0; y < newImage.Height; y++)
+                {
+                    newImage.SetPixel(x, y, Color.FromArgb(255, normalArray.GetItem(x, y), normalArray.GetItem(x, y), normalArray.GetItem(x, y)));
                 }
             }
             newImage.Save("Result.png", ImageFormat.Png);
